@@ -1,38 +1,97 @@
 'use strict';
+// Open link from right-click context menu
+// Open in window Ctrl + N
+// Open a new private window
+// Open an internal window
+// Open an internal page and without leaving focus, use right-click to on a link to open new window
+// Focus desktop, use right-click to on a link to open new window
+// https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_win_open2
 
-var detect = () => chrome.tabs.query({
-  active: true,
-  currentWindow: true
-}, tabs => {
-  const tab = tabs.length ? tabs[0] : '';
-  localStorage.setItem('tab.index', tab ? tab.index : '');
-  localStorage.setItem('window.id', tab ? tab.windowId : '');
-});
+var moveTo = (tab, windowId) => {
+  windowId = Number(windowId);
 
-const onCreated = tab => {
-  console.log(tab);
-  if (tab.url === '' || tab.url.startsWith('http') || tab.url.startsWith('about')) {
+  chrome.tabs.query({
+    windowId,
+    active: true
+  }, tabs => {
+    const opt = {
+      windowId
+    };
+    if (tabs && tabs.length) {
+      opt.index = tabs[0].index + 1;
+    }
+    chrome.tabs.move(tab.id, opt, () => {
+      const lastError = chrome.runtime.lastError;
+      if (!lastError) {
+        // https://github.com/Emano-Waldeck/Single-Window/issues/1
+        chrome.tabs.update(tab.id, {
+          active: tab.active
+        }, () => chrome.windows.update(windowId, {
+          focused: tab.active
+        }));
+      }
+    });
+  });
+};
+
+var observers = {
+  onFocusChanged: windowId => {
+    if (windowId !== chrome.windows.WINDOW_ID_NONE) {
+      localStorage.setItem('window.id', windowId);
+      // if window is not a browser window, find the active one
+      chrome.windows.get(windowId, win => {
+        if (win.type !== 'normal') {
+          chrome.windows.getAll(wins => {
+            const win = wins.filter(w => w.type === 'normal').shift();
+            if (win) {
+              localStorage.setItem('window.id', win.id);
+            }
+          });
+        }
+      });
+    }
+  },
+  onCreated: tab => {
+    if (tab.incognito) {
+      return;
+    }
     const windowId = localStorage.getItem('window.id');
-    if (windowId && Number(windowId) !== tab.windowId) {
-      const index = Number(localStorage.getItem('tab.index'));
-      chrome.tabs.move(tab.id, {
-        windowId: Number(windowId),
-        index: index + 1
-      }, () => chrome.tabs.update(tab.id, {
-        active: tab.active
-      }, () => chrome.windows.update(Number(windowId), { // https://github.com/Emano-Waldeck/Single-Window/issues/1
-        focused: tab.active
-      })));
+    if (
+      tab.url.startsWith('http') &&
+      String(tab.windowId) !== windowId
+    ) {
+      console.log('block', 'http');
+      moveTo(tab, windowId);
+    }
+    else if (
+      (tab.url === 'about:blank' || tab.url === '') &&
+      String(tab.windowId) !== windowId
+    ) {
+      window.setTimeout(() => chrome.tabs.get(tab.id, tab => {
+        if (
+          tab &&
+          (tab.url.startsWith('http') || tab.url === 'about:blank' || tab.url === '')
+        ) {
+          console.log('block', 'about:blank');
+          moveTo(tab, windowId);
+        }
+        else {
+          console.log('allow', tab);
+        }
+      }), 500, localStorage.getItem('window.id'));
+    }
+    else {
+      console.log('allow', tab);
     }
   }
 };
 
 var install = () => {
-  chrome.windows.onRemoved.addListener(detect);
-  chrome.tabs.onActivated.addListener(detect);
-  chrome.windows.onFocusChanged.addListener(detect);
-  detect();
-  chrome.tabs.onCreated.addListener(onCreated);
+  chrome.windows.getCurrent(win => {
+    localStorage.setItem('window.id', win.id);
+  });
+  chrome.windows.onFocusChanged.addListener(observers.onFocusChanged);
+  chrome.tabs.onCreated.addListener(observers.onCreated);
   chrome.browserAction.setIcon({
     path: {
       '16': 'data/icons/16.png',
@@ -48,10 +107,8 @@ var install = () => {
   });
 };
 var remove = () => {
-  chrome.windows.onRemoved.removeListener(detect);
-  chrome.tabs.onActivated.removeListener(detect);
-  chrome.windows.onFocusChanged.removeListener(detect);
-  chrome.tabs.onCreated.removeListener(onCreated);
+  chrome.windows.onFocusChanged.removeListener(observers.onFocusChanged);
+  chrome.tabs.onCreated.removeListener(observers.onCreated);
   chrome.browserAction.setIcon({
     path: {
       '16': 'data/icons/disabled/16.png',
@@ -102,7 +159,7 @@ chrome.browserAction.onClicked.addListener(() => chrome.storage.local.get({
 chrome.storage.local.get({
   'version': null,
   'faqs': true,
-  'last-update': 0,
+  'last-update': 0
 }, prefs => {
   const version = chrome.runtime.getManifest().version;
 

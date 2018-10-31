@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "name": "Single Window (open links in active window)",
   "description": "Do not allow popup windows. Open all links in the current window",
 
