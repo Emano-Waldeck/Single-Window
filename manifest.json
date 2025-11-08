@@ -1,9 +1,8 @@
 {
-  "manifest_version": 2,
-  "version": "0.1.4",
+  "manifest_version": 3,
+  "version": "0.2.1",
   "name": "Single Window (open links in active window)",
   "description": "Do not allow popup windows. Open all links in the current window",
-
   "icons": {
     "16": "data/icons/16.png",
     "19": "data/icons/19.png",
@@ -12,36 +11,21 @@
     "48": "data/icons/48.png",
     "64": "data/icons/64.png",
     "128": "data/icons/128.png",
-    "256": "data/icons/256.png"
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
-  "homepage_url": "http://add0n.com/single-window.html",
-
+  "homepage_url": "https://add0n.com/single-window.html",
   "permissions": [
     "tabs",
     "storage"
   ],
-
   "background": {
-    "persistent": false,
-    "scripts": [
-      "background.js"
-    ]
+    "service_worker": "worker.js"
   },
-
-  "browser_action": {
-    "default_icon": {
-      "16": "data/icons/16.png",
-      "19": "data/icons/19.png",
-      "32": "data/icons/32.png",
-      "38": "data/icons/38.png",
-      "48": "data/icons/48.png",
-      "64": "data/icons/64.png"
-    }
-  },
-  "applications": {
-    "gecko": {
-      "id": "{8f5996d6-d68b-4ab1-9e8b-0ca999e91c06}",
-      "strict_min_version": "52.0"
+  "action": {},
+  "commands": {
+    "_execute_action": {
+      "description": "Press the action button"
     }
   }
 }
