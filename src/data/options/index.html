@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Options Page :: Single Window</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+  <div id="content">
+    <label for="check-type">Check the type of the newly opened tab</label>
+    <input type="checkbox" id="check-type">
+    <label for="popup">If the newly opened tab is a 'popup' type</label>
+    <select id="popup">
+      <option value="create">Delete it and create a normal tab instead</option>
+      <option value="move">Move it like normal tab</option>
+      <option value="skip">Do nothing</option>
+    </select>
+  </div>
+  <p class="note">Moving a 'popup' tab to a regular window in Chromium-based browsers can cause the browser to crash.</p>
+
+  <p>
+    <input type="button" value="Factory Reset" id="reset">
+    <input type="button" value="Support Development" id="support">
+  </p>
+  <p>
+    <input type="button" value="Save Options" id="save">
+    <span id="toast"></span>
+  </p>
+
+  <script src="index.js"></script>
+</body>
+</html>

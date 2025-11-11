@@ -47,7 +47,7 @@ const last = {
   }
 };
 
-const moveTo = async (tab, windowId) => {
+const moveTo = async (tab, windowId, mode) => {
   windowId = Number(windowId);
 
   const tabs = await chrome.tabs.query({
@@ -61,13 +61,43 @@ const moveTo = async (tab, windowId) => {
   if (tabs && tabs.length) {
     opt.index = tabs[0].index + 1;
   }
-  await chrome.tabs.move(tab.id, opt);
-  // https://github.com/Emano-Waldeck/Single-Window/issues/1
-  chrome.tabs.update(tab.id, {
-    active: tab.active
+
+  const prefs = await chrome.storage.local.get({
+    'check-type': true,
+    'popup': 'create' // 'create', 'move', 'skip'
   });
-  chrome.windows.update(windowId, {
+
+  // Windows issue for popup tabs
+  if (prefs['check-type']) {
+    const win = await chrome.windows.get(tab.windowId);
+    if (win.type === 'popup') {
+      if (prefs.popup === 'skip') {
+        console.info(`tab belongs to "popup" window. Moving is skipped.`);
+        return;
+      }
+      else if (prefs.popup === 'create') {
+        console.log(tab);
+        await chrome.tabs.remove(tab.id);
+        await chrome.tabs.create({
+          ...opt,
+          url: tab.url,
+          active: true
+        });
+        await chrome.windows.update(windowId, {
+          focused: tab.active
+        });
+        return;
+      }
+    }
+  }
+
+  const moved = await chrome.tabs.move(tab.id, opt);
+  // https://github.com/Emano-Waldeck/Single-Window/issues/1
+  await chrome.windows.update(windowId, {
     focused: tab.active
+  });
+  await chrome.tabs.update(moved.id, {
+    active: true
   });
 };
 
@@ -85,18 +115,23 @@ const observers = {
     if (tab.incognito) {
       return;
     }
-    const windowId = await last.get(); // throws error if not possible
-    if (tab.url.startsWith('http') && tab.windowId !== windowId) {
-      moveTo(tab, windowId);
+    try {
+      const windowId = await last.get(); // throws error if not possible
+      if (tab.url.startsWith('http') && tab.windowId !== windowId) {
+        moveTo(tab, windowId, 'direct');
+      }
+      else if (
+        (tab.url === 'about:blank' || tab.url === '') && tab.windowId !== windowId) {
+        setTimeout(async id => {
+          const tab = await chrome.tabs.get(id);
+          if (tab && (tab.url.startsWith('http') || tab.url === 'about:blank' || tab.url === '')) {
+            moveTo(tab, windowId, 'indirect');
+          }
+        }, 500, tab.id);
+      }
     }
-    else if (
-      (tab.url === 'about:blank' || tab.url === '') && tab.windowId !== windowId) {
-      setTimeout(async id => {
-        const tab = await chrome.tabs.get(id);
-        if (tab && (tab.url.startsWith('http') || tab.url === 'about:blank' || tab.url === '')) {
-          moveTo(tab, windowId);
-        }
-      }, 500, tab.id);
+    catch (e) {
+      console.log('Move Failed', e);
     }
   }
 };
