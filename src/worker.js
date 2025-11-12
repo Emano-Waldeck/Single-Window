@@ -49,7 +49,6 @@ const last = {
 
 const moveTo = async (tab, windowId, mode) => {
   windowId = Number(windowId);
-
   const tabs = await chrome.tabs.query({
     windowId,
     active: true
@@ -64,10 +63,11 @@ const moveTo = async (tab, windowId, mode) => {
 
   const prefs = await chrome.storage.local.get({
     'check-type': true,
-    'popup': 'create' // 'create', 'move', 'skip'
+    'popup': 'create' // 'create', 'move', 'skip', 'move-alt'
   });
 
   // Windows issue for popup tabs
+  let activate = true;
   if (prefs['check-type']) {
     const win = await chrome.windows.get(tab.windowId);
     if (win.type === 'popup') {
@@ -76,17 +76,19 @@ const moveTo = async (tab, windowId, mode) => {
         return;
       }
       else if (prefs.popup === 'create') {
-        console.log(tab);
         await chrome.tabs.remove(tab.id);
         await chrome.tabs.create({
           ...opt,
-          url: tab.url,
+          url: tab.pendingUrl || tab.url,
           active: true
         });
         await chrome.windows.update(windowId, {
           focused: tab.active
         });
         return;
+      }
+      else if (prefs.popup === 'move-alt') {
+        activate = false;
       }
     }
   }
@@ -96,9 +98,11 @@ const moveTo = async (tab, windowId, mode) => {
   await chrome.windows.update(windowId, {
     focused: tab.active
   });
-  await chrome.tabs.update(moved.id, {
-    active: true
-  });
+  if (activate) {
+    await chrome.tabs.update(moved.id, {
+      active: true
+    });
+  }
 };
 
 const observers = {
@@ -131,7 +135,7 @@ const observers = {
       }
     }
     catch (e) {
-      console.log('Move Failed', e);
+      console.info('Moving Failed', e);
     }
   }
 };
