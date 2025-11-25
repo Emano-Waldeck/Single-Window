@@ -39,6 +39,20 @@ const last = {
     }
     return id;
   },
+  /* guess last focused window based on tab's lastAccessed property */
+  async guess() {
+    const windows = await chrome.windows.getAll({populate: true});
+
+    // Build list: window → most recent tab timestamp
+    const accessInfo = windows.filter(w => w.type === 'normal' && w.focused === false).map(w => {
+      return w.tabs.reduce((a, b) => (a.lastAccessed > b.lastAccessed ? a : b));
+    });
+    if (accessInfo.length < 1) {
+      throw Error('LAST_USED_NOT_FOUND');
+    }
+
+    return accessInfo.sort((a, b) => b.lastAccessed - a.lastAccessed).at(0).windowId;
+  },
   set(id) {
     last.id = id;
     chrome.storage.session.set({
@@ -62,8 +76,9 @@ const moveTo = async (tab, windowId, mode) => {
   }
 
   const prefs = await chrome.storage.local.get({
-    'check-type': true,
-    'popup': 'create' // 'create', 'move', 'skip', 'move-alt'
+    'check-type': false,
+    'popup': 'create', // 'create', 'move', 'skip', 'move-alt', 'circulate'
+    'timeout': 1000
   });
 
   // Windows issue for popup tabs
@@ -76,20 +91,29 @@ const moveTo = async (tab, windowId, mode) => {
         return;
       }
       else if (prefs.popup === 'create') {
-        await chrome.tabs.remove(tab.id);
+        await chrome.windows.update(windowId, {
+          focused: tab.active
+        });
         await chrome.tabs.create({
           ...opt,
           url: tab.pendingUrl || tab.url,
           active: true
         });
-        await chrome.windows.update(windowId, {
-          focused: tab.active
-        });
+        setTimeout(() => chrome.tabs.remove(tab.id), prefs.timeout);
         return;
       }
       else if (prefs.popup === 'move-alt') {
         activate = false;
       }
+      else if (prefs.popup === 'circulate') {
+        // move tab to a normal window first
+        await chrome.windows.create({
+          tabId: tab.id
+        });
+      }
+    }
+    else {
+      return;
     }
   }
 
@@ -119,8 +143,18 @@ const observers = {
     if (tab.incognito) {
       return;
     }
+    console.log(tab.index);
+    if (tab.index !== 0) {
+      return; // tab belongs to a window group
+    }
     try {
-      const windowId = await last.get(); // throws error if not possible
+      let windowId;
+      try {
+        windowId = await last.get();
+      }
+      catch (e) {
+        windowId = await last.guess();
+      }
       if (tab.url.startsWith('http') && tab.windowId !== windowId) {
         moveTo(tab, windowId, 'direct');
       }

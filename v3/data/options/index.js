@@ -7,7 +7,7 @@ const toast = msg => {
 };
 
 chrome.storage.local.get({
-  'check-type': true,
+  'check-type': false,
   'popup': 'create' // 'create', 'move', 'skip'
 }).then(prefs => {
   document.getElementById('check-type').checked = prefs['check-type'];
