@@ -143,7 +143,6 @@ const observers = {
     if (tab.incognito) {
       return;
     }
-    console.log(tab.index);
     if (tab.index !== 0) {
       return; // tab belongs to a window group
     }

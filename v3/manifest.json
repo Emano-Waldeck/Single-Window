@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.2.5",
+  "version": "0.2.6",
   "name": "Single Window (open links in active window)",
   "description": "Do not allow popup windows. Open all links in the current window",
   "icons": {
@@ -14,13 +14,14 @@
     "256": "data/icons/256.png",
     "512": "data/icons/512.png"
   },
-  "homepage_url": "https://add0n.com/single-window.html",
+  "homepage_url": "https://webextension.org/listing/single-window.html",
   "permissions": [
     "tabs",
     "storage"
   ],
   "background": {
-    "service_worker": "worker.js"
+    "service_worker": "worker.js",
+    "scripts": ["worker.js"]
   },
   "action": {},
   "commands": {
@@ -31,5 +32,14 @@
   "options_ui": {
     "page": "data/options/index.html",
     "open_in_tab": true
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{8f5996d6-d68b-4ab1-9e8b-0ca999e91c06}",
+      "strict_min_version": "128.0"
+    },
+    "data_collection_permissions": {
+      "required": ["none"]
+    }
   }
 }
