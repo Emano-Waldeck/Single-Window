@@ -8,16 +8,29 @@ const toast = msg => {
 
 chrome.storage.local.get({
   'check-type': false,
-  'popup': 'create' // 'create', 'move', 'skip'
+  'popup': 'create', // 'create', 'move', 'skip'
+  'excluded-hosts': [] // add domain names to exclude from the extension
 }).then(prefs => {
   document.getElementById('check-type').checked = prefs['check-type'];
   document.getElementById('popup').value = prefs.popup;
+  document.getElementById('excluded-hosts').value = prefs['excluded-hosts'].join('\n');
 });
 
-document.getElementById('save').onclick = () => chrome.storage.local.set({
-  'check-type': document.getElementById('check-type').checked,
-  'popup': document.getElementById('popup').value
-}).then(() => toast('Options Saved'));
+
+document.getElementById('save').onclick = () => {
+  const excludedHosts = document // Pull the excluded hosts value
+    .getElementById('excluded-hosts')
+    .value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  chrome.storage.local.set({
+    'check-type': document.getElementById('check-type').checked,
+    'popup': document.getElementById('popup').value,
+    'excluded-hosts': excludedHosts // Save the excluded hosts to storage
+  }).then(() => toast('Options Saved'));
+};
 
 // support
 document.getElementById('support').onclick = () => chrome.tabs.create({

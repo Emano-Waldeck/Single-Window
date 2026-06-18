@@ -61,6 +61,40 @@ const last = {
   }
 };
 
+const url = tab => tab.pendingUrl || tab.url || '';
+
+const excluded = {
+  normalize(host) {
+    return String(host)
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .split('/')[0];
+  },
+  async matches(href) {
+    if (!href || href.startsWith('about:') || href.startsWith('chrome:') || href.startsWith('edge:')) {
+      return false;
+    }
+
+    let hostname;
+    try {
+      hostname = new URL(href).hostname.toLowerCase();
+    }
+    catch (e) {
+      return false;
+    }
+
+    const prefs = await chrome.storage.local.get({
+      'excluded-hosts': []
+    });
+
+    return prefs['excluded-hosts']
+      .map(excluded.normalize)
+      .filter(Boolean)
+      .some(host => hostname === host || hostname.endsWith('.' + host));
+  }
+};
+
 const moveTo = async (tab, windowId, mode) => {
   windowId = Number(windowId);
   const tabs = await chrome.tabs.query({
@@ -78,7 +112,8 @@ const moveTo = async (tab, windowId, mode) => {
   const prefs = await chrome.storage.local.get({
     'check-type': false,
     'popup': 'create', // 'create', 'move', 'skip', 'move-alt', 'circulate'
-    'timeout': 1000
+    'timeout': 1000,
+    'excluded-hosts': [] // Add domain names to exclude from the extension
   });
 
   // Windows issue for popup tabs
@@ -155,6 +190,9 @@ const observers = {
         windowId = await last.guess();
       }
       if (tab.url.startsWith('http') && tab.windowId !== windowId) {
+        if (await excluded.matches(url(tab))) {
+          return;
+        }
         moveTo(tab, windowId, 'direct');
       }
       else if (
@@ -162,6 +200,9 @@ const observers = {
         setTimeout(async id => {
           const tab = await chrome.tabs.get(id);
           if (tab && (tab.url.startsWith('http') || tab.url === 'about:blank' || tab.url === '')) {
+            if (await excluded.matches(url(tab))) {
+              return;
+            }
             moveTo(tab, windowId, 'indirect');
           }
         }, 500, tab.id);
