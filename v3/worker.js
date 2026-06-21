@@ -103,11 +103,12 @@ const moveTo = async (tab, windowId, mode) => {
     'check-type': false,
     'popup': 'create', // 'create', 'move', 'skip', 'move-alt', 'circulate'
     'timeout': 1000,
-    'excluded-hosts': [] // Add domain names to exclude from the extension
+    'excluded-hosts': [], // Add domain names to exclude from the extension
+    'opening-type': 'foreground'
   });
 
   // Windows issue for popup tabs
-  let activate = true;
+  let activate = prefs['opening-type'] === 'foreground';
   if (prefs['check-type']) {
     const win = await chrome.windows.get(tab.windowId);
     if (win.type === 'popup') {
@@ -126,6 +127,9 @@ const moveTo = async (tab, windowId, mode) => {
         });
         setTimeout(() => chrome.tabs.remove(tab.id), prefs.timeout);
         return;
+      }
+      else if (prefs.popup === 'move') {
+        activate = true;
       }
       else if (prefs.popup === 'move-alt') {
         activate = false;

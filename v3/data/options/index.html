@@ -12,17 +12,22 @@
   <div id="content">
     <label for="check-type"><a data-href="faq7" target="about_blank">Check the type of the newly opened tab</a></label>
     <input type="checkbox" id="check-type">
-    <label for="popup">If the newly opened tab is a 'popup' type</label>
+    <label for="popup">When the new window is a popup</label>
     <select id="popup">
-      <option value="create">Delete it and create a normal tab instead</option>
-      <option value="move">Move it like normal tab</option>
-      <option value="move-alt">Move it like normal tab (without activating)</option>
-      <option value="circulate">Move it fist to a normal window</option>
+      <option value="create">Delete it and create a standard browser tab instead</option>
+      <option value="move">Move it like standard browser tab</option>
+      <option value="move-alt">Move it like standard browser tab (without activating)</option>
+      <option value="circulate">First move it to a standard browser window</option>
       <option value="skip">Do nothing</option>
     </select>
     <label for="excluded-hosts">Excluded Hosts(One host per line)</label>
     <textarea id="excluded-hosts" rows="5" placeholder="google.com&#10;yahoo.com&#10;example.com">
     </textarea>
+    <label for="opening-type">When switching a window to tab</label>
+    <select id="opening-type">
+      <option value="foreground">Make it Active</option>
+      <option value="background">Keep it in Background</option>
+    </select>
   </div>
   <p class="note">Moving a 'popup' tab to a regular window in Chromium-based browsers can cause the browser to crash.</p>
 
