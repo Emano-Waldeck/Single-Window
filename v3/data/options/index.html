@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Options Page :: Single Window</title>
   <link rel="stylesheet" type="text/css" href="index.css">
 </head>
+
 <body>
   <div id="content">
     <label for="check-type"><a data-href="faq7" target="about_blank">Check the type of the newly opened tab</a></label>
@@ -18,6 +20,9 @@
       <option value="circulate">Move it fist to a normal window</option>
       <option value="skip">Do nothing</option>
     </select>
+    <label for="excluded-hosts">Excluded Hosts(One host per line)</label>
+    <textarea id="excluded-hosts" rows="5" placeholder="salesforce.com&#10;workday.com&#10;example.company.com">
+    </textarea>
   </div>
   <p class="note">Moving a 'popup' tab to a regular window in Chromium-based browsers can cause the browser to crash.</p>
 
@@ -32,4 +37,5 @@
 
   <script src="index.js"></script>
 </body>
+
 </html>
