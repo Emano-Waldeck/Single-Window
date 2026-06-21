@@ -18,12 +18,14 @@ chrome.storage.local.get({
 
 
 document.getElementById('save').onclick = () => {
-  const excludedHosts = document // Pull the excluded hosts value
-    .getElementById('excluded-hosts')
-    .value
-    .split('\n')
-    .map(s => s.trim())
-    .filter(Boolean);
+  const normalize = host => String(host).trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0];
+
+  // Pull the excluded hosts value
+  const excludedHosts = document.getElementById('excluded-hosts').value
+    .split('\n').map(normalize).filter(Boolean);
+
+  // Updating interface
+  document.getElementById('excluded-hosts').value = excludedHosts.join('\n');
 
   chrome.storage.local.set({
     'check-type': document.getElementById('check-type').checked,

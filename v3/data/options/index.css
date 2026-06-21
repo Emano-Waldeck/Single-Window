@@ -65,12 +65,16 @@ a:visited {
 
 #content {
   display: grid;
-  grid-template-columns: 1fr min-content;
-  align-items: center;
+  grid-template-columns: min-content 1fr;
+  align-items: baseline;
   white-space: nowrap;
   grid-gap: 10px;
 
   input {
+    justify-self: end;
+  }
+  select {
+    field-sizing: content;
     justify-self: end;
   }
 }

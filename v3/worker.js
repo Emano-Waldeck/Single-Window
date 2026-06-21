@@ -64,13 +64,6 @@ const last = {
 const url = tab => tab.pendingUrl || tab.url || '';
 
 const excluded = {
-  normalize(host) {
-    return String(host)
-      .trim()
-      .toLowerCase()
-      .replace(/^https?:\/\//, '')
-      .split('/')[0];
-  },
   async matches(href) {
     if (!href || href.startsWith('about:') || href.startsWith('chrome:') || href.startsWith('edge:')) {
       return false;
@@ -88,10 +81,7 @@ const excluded = {
       'excluded-hosts': []
     });
 
-    return prefs['excluded-hosts']
-      .map(excluded.normalize)
-      .filter(Boolean)
-      .some(host => hostname === host || hostname.endsWith('.' + host));
+    return prefs['excluded-hosts'].some(host => hostname === host || hostname.endsWith('.' + host));
   }
 };
 
