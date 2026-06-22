@@ -62,6 +62,12 @@ a,
 a:visited {
   color: var(--link-color);
 }
+h1 {
+  padding: 20px;
+  text-align: center;
+  font-size: 1rem;
+  background-color: var(--button-gradient-start);
+}
 
 #content {
   display: grid;

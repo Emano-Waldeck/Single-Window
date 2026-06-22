@@ -7,9 +7,17 @@
   <title>Options Page :: Single Window</title>
   <link rel="stylesheet" type="text/css" href="index.css">
 </head>
-
 <body>
+  <h1>Single Window (open links in active window)</h1>
   <div id="content">
+    <label for="opening-type">When switching a window to tab</label>
+    <select id="opening-type">
+      <option value="foreground">Make it Active</option>
+      <option value="background">Keep it in Background</option>
+    </select>
+    <label for="excluded-hosts">Excluded Hosts(One host per line)</label>
+    <textarea id="excluded-hosts" rows="5" placeholder="Hostnames that are permitted to launch new windows. e.g.:&#10;&#10;google.com&#10;yahoo.com&#10;example.com">
+    </textarea>
     <label for="check-type"><a data-href="faq7" target="about_blank">Check the type of the newly opened tab</a></label>
     <input type="checkbox" id="check-type">
     <label for="popup">When the new window is a popup</label>
@@ -19,14 +27,6 @@
       <option value="move-alt">Move it like standard browser tab (without activating)</option>
       <option value="circulate">First move it to a standard browser window</option>
       <option value="skip">Do nothing</option>
-    </select>
-    <label for="excluded-hosts">Excluded Hosts(One host per line)</label>
-    <textarea id="excluded-hosts" rows="5" placeholder="google.com&#10;yahoo.com&#10;example.com">
-    </textarea>
-    <label for="opening-type">When switching a window to tab</label>
-    <select id="opening-type">
-      <option value="foreground">Make it Active</option>
-      <option value="background">Keep it in Background</option>
     </select>
   </div>
   <p class="note">Moving a 'popup' tab to a regular window in Chromium-based browsers can cause the browser to crash.</p>
